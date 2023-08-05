@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spectral Sensor Data</title>
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.getElementById('connect').addEventListener('click', connectToBluetoothDevice);
+        });
+
+        async function connectToBluetoothDevice() {
+            try {
+                let device = await navigator.bluetooth.requestDevice({
+                    filters: [{
+                        name: 'ESP32_BT'
+                    }],
+                    optionalServices: ['generic_access']
+                });
+
+                let server = await device.gatt.connect();
+                let service = await server.getPrimaryService('generic_access');
+                let characteristic = await service.getCharacteristic('GATT_CHARACTERISTIC_UUID'); // Ganti dengan UUID karakteristik yang sesuai
+
+                await characteristic.startNotifications();
+                characteristic.addEventListener('characteristicvaluechanged', handleCharacteristicValueChanged);
+
+                console.log('Connected to Bluetooth device successfully');
+            } catch (error) {
+                console.log('Error in Bluetooth connection: ', error);
+            }
+        }
+
+        function handleCharacteristicValueChanged(event) {
+            let value = new TextDecoder().decode(event.target.value);
+            document.getElementById('sensorData').textContent = value;
+        }
+    </script>
+</head>
+<body>
+<h1>Spectral Sensor Data</h1>
+<button id="connect">Connect to Bluetooth Device</button>
+<p id="sensorData"></p>
+</body>
+</html>
